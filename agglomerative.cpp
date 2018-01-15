@@ -368,7 +368,9 @@ int main(){
         pointVec[p.id] = p;
     }
     
-    bool DISTANCE = 0; // 1 is euclid, 0 is alternate distance.
+    // 1 --> EUCLID
+    // 0 --> ALTERNATE
+    bool DISTANCE = 0;
     
     // Create distance matrix.
     for (int i = 0; i < 20000; i++){
@@ -392,7 +394,8 @@ int main(){
     
     clusterNode* head = constructor(20000);
     
-    // 1 for complete, 0 for single linkage
+    // 1 --> COMPLETE
+    // 0 --> SINGLE
     agglomerative(head, distanceMatrix, clusterMatrix, 5, 0);
     
     vector<int> labels = label_clusters(head, pointVec);
