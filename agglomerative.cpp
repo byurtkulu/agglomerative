@@ -90,7 +90,7 @@ double euclid_dist(const point &p1, const point &p2){
     distance += pow(abs(p1.q4-p2.q4), 2);
     distance += pow(abs(p1.q5-p2.q5), 2);
     
-    return pow(distance, 0.1);
+    return pow(distance, 0.5);
 }
 
 
@@ -403,6 +403,8 @@ int main(){
     for(int i = 0; i < 5; i++){
         printf("%d", labels[i]);
     }
+    
+    
     
     destructor(head);
     delete[] distanceMatrix;
