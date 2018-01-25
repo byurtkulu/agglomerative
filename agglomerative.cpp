@@ -195,9 +195,43 @@ double singleDistance(const clusterNode* c1, const clusterNode* c2, const double
     return min;
 }
 
+
+// Average distance:
+// Calculate each dşstance. Then find the mean of them.
+double averageDistance(const clusterNode* c1, const clusterNode* c2, const double* dm){
+    double avg = 0;
+    int count = 0;
+    simplePoint* p1 = c1->right;
+    simplePoint* p2 = c2->right;
+    while(p1 != NULL){
+        while (p2 != NULL){
+            avg += dm[index(p1->id, p2->id)];
+            count++;
+            p2 = p2->right;
+        }
+        p1 = p1->right;
+    }
+    return avg / double(count);
+}
+
+
+double centroidDistance(const clusterNode* c1, const clusterNode* c2, const double* dm){
+    simplePoint* p1 = c1->right;
+    simplePoint* p2 = c2->right;
+    
+    // for point p1
+    while(p1 != NULL){
+        
+        p1 = p1->right;
+    }
+    
+    
+}
+
+
 // input: two cluster pointer
 // output: merge two cluster pointer into one cluster
-void merge(clusterNode* head, clusterNode* c1, clusterNode* c2, double* cm, const double* dm, const bool &t){
+void merge(clusterNode* head, clusterNode* c1, clusterNode* c2, double* cm, const double* dm, const int &t){
     // Merge c1 and c2
     simplePoint* p1 = c1->right;
     while(p1->right != NULL)
@@ -210,6 +244,7 @@ void merge(clusterNode* head, clusterNode* c1, clusterNode* c2, double* cm, cons
         c2->down->up = c2->up;
     delete c2;
     
+    
     // Update clusterMatrix.
     clusterNode* temp = head;
     if(temp->clusterID == c1->clusterID)
@@ -217,12 +252,31 @@ void merge(clusterNode* head, clusterNode* c1, clusterNode* c2, double* cm, cons
     
     // start to compare merged node to other nodes
     while (temp != NULL) {
-        double d;
-        if(t)
-            d = completeDistance(c1, temp, dm);
-        else
-            d = singleDistance(c1,temp,dm); // Write
+        double d = 0.0;
+        // Update - Complete, Single, Avarage, Centroid
+        // 0 --> SINGLE
+        // 1 --> COMPLETE
+        // 2 --> AVERAGE
+        // 3 --> CENTROID
+        switch (t) {
+            case 0:
+                d = singleDistance(c1,temp,dm);
+                break;
+            case 1:
+                d = completeDistance(c1, temp, dm);
+                break;
+            case 2:
+                d = averageDistance(c1,temp,dm); // WRITE !!!
+                break;
+            case 3:
+                d = centroidDistance(c1,temp,dm); // WRITE !!!
+                break;
+                
+            default:
+                break;
+        }
         
+        // UPDATE CLUSTER MATRIX
         cm[index((int)min(c1->clusterID,temp->clusterID), (int)max(c1->clusterID,temp->clusterID))] = d;
         
         temp = temp->down;
@@ -234,7 +288,7 @@ void merge(clusterNode* head, clusterNode* c1, clusterNode* c2, double* cm, cons
 
 
 // Start to cluster
-void agglomerative(clusterNode* &head, const double* dm, double* cm, int c_s, const bool &t){
+void agglomerative(clusterNode* &head, const double* dm, double* cm, const vector<point> &pvec, int c_s, const int &t){
     //int counter = 1;
     for (int i = 0; i < 20000-c_s; i++){
         clusterNode* first = head;
@@ -296,8 +350,9 @@ int minServer(point p){
 
 
 // Get the max value in a vector
-int getMaxInt(vector<int> &v){
-    int max = v[0];
+template <class T>
+T getMax(vector<T> &v){
+    T max = v[0];
     for(int i=1;i<v.size();i++){
         if(v[i]>max)
             max=v[i];
@@ -307,8 +362,9 @@ int getMaxInt(vector<int> &v){
 
 
 // Get the min value in a vector
-int getMinInt(vector<int> &v){
-    int min = v[0];
+template <class T>
+T getMin(const vector<T> &v){
+    T min = v[0];
     for(int i=1;i<v.size();i++){
         if(v[i]<min)
             min=v[i];
@@ -333,7 +389,7 @@ vector<int> label_clusters(clusterNode* head, const vector<point> &vec){
         }
         // Find index
         int currentLabel = 0;
-        int m = getMaxInt(labelCounter);
+        int m = getMax(labelCounter);
         for(int k = 0; k < 5; k++){
             cout << k << ":" << labelCounter[k] << " | ";
             if(labelCounter[k] == m)
@@ -345,24 +401,6 @@ vector<int> label_clusters(clusterNode* head, const vector<point> &vec){
     }
     
     return labels;
-}
-
-double getMin(const vector<double> &v){
-    double min = __DBL_MAX__;
-    for(int i = 0; i < v.size(); i++){
-        if(v[i] < min)
-            min = v[i];
-    }
-    return min;
-}
-
-double getMax(const vector<double> &v){
-    double max = __DBL_MIN__;
-    for(int i = 0; i < v.size(); i++){
-        if(v[i] < max)
-            max = v[i];
-    }
-    return max;
 }
 
 void preprocess(vector<double> &vec){
@@ -404,6 +442,9 @@ int main(){
         pointVec[p.id] = p;
     }
     
+    //-----------------//
+    // CHOOSE DISTANCE //
+    //-----------------//
     // 1 --> EUCLID
     // 0 --> ALTERNATE
     bool DISTANCE = 0;
@@ -430,9 +471,14 @@ int main(){
     
     clusterNode* head = constructor(20000);
     
-    // 1 --> COMPLETE
+    //---------------------//
+    // CHOOSE LINKAGE TYPE //
+    //---------------------//
     // 0 --> SINGLE
-    agglomerative(head, distanceMatrix, clusterMatrix, 5, 0);
+    // 1 --> COMPLETE
+    // 2 --> AVERAGE
+    // 3 --> CENTROID
+    agglomerative(head, distanceMatrix, clusterMatrix, pointVec, 5, 0);
     
     vector<int> labels = label_clusters(head, pointVec);
     
