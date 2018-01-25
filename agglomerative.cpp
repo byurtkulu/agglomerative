@@ -12,6 +12,7 @@
 #include <fstream>
 #include <cmath>
 #include <string>
+#include <limits.h>
 #include "strutils.h"
 using namespace std;
 
@@ -346,7 +347,31 @@ vector<int> label_clusters(clusterNode* head, const vector<point> &vec){
     return labels;
 }
 
+double getMin(const vector<double> &v){
+    double min = __DBL_MAX__;
+    for(int i = 0; i < v.size(); i++){
+        if(v[i] < min)
+            min = v[i];
+    }
+    return min;
+}
 
+double getMax(const vector<double> &v){
+    double max = __DBL_MIN__;
+    for(int i = 0; i < v.size(); i++){
+        if(v[i] < max)
+            max = v[i];
+    }
+    return max;
+}
+
+void preprocess(vector<double> &vec){
+    for(int i = 0; i < vec.size(); i++){
+        double max = getMax(vec);
+        double min = getMin(vec);
+        vec[i] = (vec[i] - min) / (max - min);
+    }
+}
 
 
 ///////////////////////////////////////////////////////////////
@@ -362,9 +387,20 @@ int main(){
     string line;
     getline(file, line);
     
+    
+    // PREPROCESSING - OPTIONAL
+    bool is_preprocess = true;
+    
     while(getline(file, line)){
         vector<double> commaSepVec = separatedByComma(line);
+        
+        //Preprocessing
+        if(is_preprocess){
+            preprocess(commaSepVec);
+        }
+        
         point p(commaSepVec[0], commaSepVec[1], commaSepVec[2], commaSepVec[3], commaSepVec[4], commaSepVec[5], commaSepVec[6], commaSepVec[7], commaSepVec[8], commaSepVec[9], commaSepVec[10]);
+
         pointVec[p.id] = p;
     }
     
